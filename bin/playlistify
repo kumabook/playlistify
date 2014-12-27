@@ -1,0 +1,49 @@
+#!/usr/bin/env coffee
+
+if process.argv.length < 3
+    console.log 'USAGE: playlistify url'
+    return;
+
+url = process.argv[2];
+isDebug = false
+
+Spooky      = require 'spooky'
+playlistify = require '../lib'
+
+eventName = 'playlistify-post-scraping'
+
+spooky = new Spooky
+  child:
+    transport: 'http'
+  casper:
+    logLevel: isDebug ? 'debug' : 'error'
+    verbose: isDebug
+    clientScripts: ['userscript/playlistify-userscript.js']
+  (err) ->
+    if err
+      e         = new Error 'Failed to initialize SpookyJS'
+      e.details = err
+      throw e
+
+    spooky.start url
+    spooky.then ->
+      this.emit 'playlistify-post-scraping', this.evaluate ->
+        videos = document.getElementsByTagName 'video'
+        JSON.stringify(new playlistify.Scraper().extractPlaylist(document))
+    spooky.run()
+
+spooky.on 'error', (e, stack) ->
+  console.error(e);
+  console.log stack if stack
+
+
+spooky.on 'console', (line) ->
+  console.log(line)
+
+
+spooky.on eventName, (playlists) ->
+  console.log(playlists)
+
+
+spooky.on 'log',  (log) ->
+  console.log(log.message.replace(/// \- .*///, '')) if log.space == 'remote'
