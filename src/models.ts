@@ -1,5 +1,5 @@
 export enum Provider {
-    Youtube,
+    YouTube,
     SoundCloud,
     Vimeo,
     Raw
