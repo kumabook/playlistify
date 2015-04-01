@@ -1,4 +1,4 @@
-# Playlifity
+# Playlistify
 
 Playlistify is scraping library that focuses on extracing music track.
 
